@@ -4,15 +4,184 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
-    <script src="hasherjs.js"></script>
+    <script type="text/javascript" src="jquery-2.1.4.min.js"></script>
+    <script src="../src/hasherjs.js"></script>
+    <style>
+        body { background-color: #dfdfdf; }
+        .maintitle { font-size: large; }
+        hr { border: solid 1px #ccc; }
 
+        .example { padding: 10px; border: 1px solid #efefef; background-color: #FFF; border-radius: 3px; }
+            .example .title { font-size: medium; font-weight: bold; }
+
+        .stepcontainer { width: 100%; height: 75px; float: left; }
+        .step { width: 100%; height: 100%; float: left; display:none;  }
+        .step1 { background-color: red; }
+        .step2 { background-color: blue; }
+        .step3 { background-color: orange; }
+        .step4 { background-color: yellow; }
+    </style>
 </head>
+
 <body>
+    <h3 class="maintitle">HaserJs Examples</h3>
+    <hr />
 
+    <div class="example">
+        <div class="title">Basic Example (Adding and Retreiving)</div>
 
+        <p>The two buttons below can be used to add data to the hash and retrieve the values for stored information.</p>
+
+        <button id="btnTestAdd">Add To Hash</button>
+        <button id="btnListHash">Get Value from Hash</button>
+        <button id="btnRemoveHash">Remove from Hash</button>
+
+    </div>
+
+    <div class="example">
+        <div class="title">Stringify the Hash Data</div>
+
+        <p>This is used to manually get the window hash in the proper format. This is used when redirecting users or changing the URL and you wish to append the hash information manually.</p>
+
+        <div id="divStringifyData"></div>
+
+        <button id="btnAddRandomData">Add Random Data and Stringify</button>
+        <button id="btnStringify">Stringify</button>
+    </div>
+
+    <div class="example">
+        <div class="title">Set an Event When Hash Changes</div>
+
+        <p>Set an event when the hash changes.</p>
+
+        <div id="alertHashChanged"></div>
+
+        <button id="btnAlertHashChange">Alert Me When Hash Changes</button>
+        <button id="btnAddRandom">Random Data</button>
+    </div>
+
+    <div class="example">
+        <div class="title">Basic Use Case</div>
+        <p>The basic use case is for perserving the back and forward buttons on modern and older browsers. In this example we are going to do the following:</p>
+        <ul>
+            <li>Create a small wizard.</li>
+            <li>Control the navigation using the window hash.</li>
+            <li>Preserve the history so the user can use the back and forward buttons to navigate the wizard.</li>
+        </ul>
+
+        <button id="btnBeginExample">Begin Example</button>
+
+        <div class="stepcontainer">
+            <div class="step step1">Step 1 <button class="movestep" data-step="step2">Next</button></div>
+            <div class="step step2">Step 2 <button class="movestep" data-step="step1">Prev</button><button class="movestep" data-step="step3">Next</button></div>
+            <div class="step step3">Step 3 <button class="movestep" data-step="step2">Prev</button><button class="movestep" data-step="step4">Next</button></div>
+            <div class="step step4">Step 4 <button class="movestep" data-step="step3">Prev</button></div>
+        </div>
+    </div>
 
     <script>
+        $(document).ready(function () {
+            $("#btnBeginExample").click(function (e) {
+                e.preventDefault();
+                $.HasherJs.RemoveAll();
 
+                $.HasherJs.OnChange(function () {
+                    if ($.HasherJs.Exists("step")) {
+                        var step = $.HasherJs.GetValue("step");
+
+                        $(".step").hide();
+                        $("." + step).fadeIn();
+                    }
+                });
+
+                $(".movestep").click(function (e) {
+                    e.preventDefault();
+                    var step = $(this).data("step");
+                    $.HasherJs.Upsert("step", step);
+                });
+
+                $.HasherJs.Upsert("step", "step1");
+            });
+
+
+            $("#btnTestAdd").click(function (e) {
+                e.preventDefault();
+                var fieldName = prompt('Enter the field name you wish to store:');
+                var dataToAdd = prompt('Enter the value for ' + fieldName + ":");
+
+                $.HasherJs.Add(fieldName, dataToAdd);
+            });
+
+            $("#btnListHash").click(function (e) {
+                e.preventDefault();
+
+                var fieldName = prompt('Enter the field name you wish to retrieve:');
+                var exists = $.HasherJs.Exists(fieldName);
+
+                if (exists) {
+                    var value = $.HasherJs.GetValue(fieldName);
+                    alert("value: " + value);
+                } else {
+                    alert("The field name " + fieldName + " does not exist");
+                }
+            });
+
+            $("#btnRemoveHash").click(function (e) {
+                e.preventDefault();
+                var fieldName = prompt('Enter the field name you wish to remove:');
+                var exists = $.HasherJs.Exists(fieldName);
+
+                if (exists) {
+                    var value = $.HasherJs.Remove(fieldName);
+                } else {
+                    alert("The field name " + fieldName + " does not exist");
+                }
+            });
+
+
+            $("#btnAddRandomData").click(function (e) {
+                e.preventDefault();
+
+                $.HasherJs.RemoveAll();
+
+                $.HasherJs.Add("Location", "Philadelphia");
+                $.HasherJs.Add("User", "JAdams");
+                $.HasherJs.Add("ShowPanel", "False");
+
+                var stringified = $.HasherJs.Stringify();
+
+
+                $("#divStringifyData").text(stringified);
+
+            });
+
+            $("#btnStringify").click(function (e) {
+                e.preventDefault();
+                var stringified = $.HasherJs.Stringify();
+                $("#divStringifyData").text(stringified);
+
+            });
+
+            $("#btnAlertHashChange").click(function (e) {
+                e.preventDefault();
+                $.HasherJs.OnChange(function () {
+
+                    var randomNum = Math.floor(Math.random() * 2);
+                    var color = ["red", "green", "blue"];
+
+                    $("#alertHashChanged").css("background-color", color[randomNum]);
+                    $("#alertHashChanged").text("Changed");
+                });
+            });
+
+            $("#btnAddRandom").click(function (e) {
+                e.preventDefault();
+                var randomNum = Math.floor(Math.random() * 1000);
+
+                $.HasherJs.Add(randomNum, "t");
+            });
+
+        });
 
     </script>
 </body>

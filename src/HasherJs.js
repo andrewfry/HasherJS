@@ -1,8 +1,10 @@
 ﻿
-var HashProp = {};
-HashProp.prototype.Name = "";
-HashProp.prototype.Value = "";
-
+var HashProp = function () {
+    return {
+        Name: "",
+        Value: ""
+    };
+};
 
 $.HasherJs = (function () {
     "use strict";
@@ -40,6 +42,14 @@ $.HasherJs = (function () {
 
     return {
 
+        Upsert : function(fieldName, fieldValue) {
+            if (this.Exists(fieldName)) {
+                this.SetValue(fieldName, fieldValue);
+            } else {
+                this.Add(fieldName, fieldValue);
+            }
+        },
+
         Add: function (fieldName, fieldValue) {
             if (fieldName !== "" && fieldName !== undefined) {
                 var obj = new HashProp();
@@ -59,7 +69,7 @@ $.HasherJs = (function () {
             var hashes = getHashes();
 
             for (var i = 0; i < hashes.length; i++) {
-                if (hashes[i].Name === fieldName) {
+                if (hashes[i].Name.toLowerCase() === fieldName.toLowerCase()) {
                     return true;
                 }
             }
@@ -71,13 +81,17 @@ $.HasherJs = (function () {
             var hashes = getHashes();
 
             for (var i = 0; i < hashes.length; i++) {
-                if (hashes[i].Name === fieldName) {
+                if (hashes[i].Name.toLowerCase() === fieldName.toLowerCase()) {
                     hashes.splice(i, 1);
                     return setArrayToWindowHash(hashes);
                 }
             }
 
             return false;
+        },
+
+        RemoveAll: function () {
+            window.location.hash = "";
         },
 
         OnChange: function (hashChangeHandler) {
@@ -114,7 +128,7 @@ $.HasherJs = (function () {
             var hashes = getHashes();
 
             for (var i = 0; i < hashes.length; i++) {
-                if (hashes[i].Name === fieldName) {
+                if (hashes[i].Name.toLowerCase() === fieldName.toLowerCase()) {
                     hashes[i].Value = newValue;
 
                     return setArrayToWindowHash(hashes);
